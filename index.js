@@ -1,7 +1,7 @@
 require("dotenv").config();
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const fs = require("fs");
-const keepAlive = request("./server.js");
+const keepAlive = require("./server.js");
 const path = require("path");
 const { checkNewPosts } = require("./crawler/newsChecker");
 const { request } = require("http");

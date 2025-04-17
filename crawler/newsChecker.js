@@ -2,7 +2,11 @@ const puppeteer = require("puppeteer");
 
 async function checkNewPosts(type = "Notice") {
     const url = `https://mabinogimobile.nexon.com/News/${type}`;
-    const browser = await puppeteer.launch({ headless: "new" });
+    const browser = await puppeteer.launch({
+        headless: "new",
+        args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    });
+
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 0 });
 
@@ -28,7 +32,6 @@ async function checkNewPosts(type = "Notice") {
     const postUrl = `https://mabinogimobile.nexon.com/News/${type}/${data.id}`;
     await page.goto(postUrl, { waitUntil: "domcontentloaded", timeout: 0 });
 
-    // ✅ 스타일에 따라 텍스트 처리
     const text = await page.evaluate(() => {
         const nodes = document.querySelectorAll(
             ".news.board_view.container .view_body_wrap .content_area .content p > span > span > span"
@@ -41,7 +44,7 @@ async function checkNewPosts(type = "Notice") {
             let current = node;
             let style = "";
 
-            // 부모 span까지 타고 올라가서 스타일 확인
+            // 상위 span 태그들의 style 속성 확인
             while (current && current.nodeName === "SPAN") {
                 style += current.getAttribute("style") || "";
                 current = current.parentElement;
@@ -51,12 +54,12 @@ async function checkNewPosts(type = "Notice") {
             if (!content || seen.has(content)) return;
             seen.add(content);
 
-            // 강조 조건
+            // 강조 텍스트 처리 (크고 굵은 텍스트)
             if (style.includes("font-size:18px")) {
                 content = `\n\n▶__**${content}**__`;
             }
 
-            // 앞에 네모 문자가 있는 경우 줄바꿈 추가
+            // 앞에 특수문자가 있을 경우 줄바꿈
             if (/^[■◼✔]/.test(content)) {
                 content = `\n${content}`;
             }
